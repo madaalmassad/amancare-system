@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=200" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="dashboard-dark-page">
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg" alt="AmanCare Shield">
+            </div>
+            <div>
+                <h1>AmanCare</h1>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-links nav-links-light">
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/dashboard" class="active-link">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="container dashboard-dark-wrap">
+        <section class="dashboard-dark-hero page-animated-bg dashboard-hero-box">
+            <div class="bg-orb orb-a"></div>
+            <div class="bg-orb orb-b"></div>
+
+            <div class="dashboard-dark-left">
+                <span class="hero-badge">Patient Live Monitoring</span>
+                <h2>AmanCare Patient Monitoring Dashboard</h2>
+                <p>
+                    Monitor live location, contact details, patient status, and the safe-zone boundary
+                    from one polished medical dashboard.
+                </p>
+            </div>
+
+            <div class="dashboard-top-side">
+                <div class="verse-panel arabic dashboard-verse-top">
+                    <span class="verse-label">Quranic Verse</span>
+                    <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+                </div>
+
+                <div class="status-box safe-box dashboard-status-dark" id="mainStatusBox">
+                    <span>Current Status</span>
+                    <strong class="status-safe" id="mainStatusText">{{ patient.status }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-row">
+            <div class="mini-stat dashboard-card-dark">
+                <span>Patient Name</span>
+                <strong>{{ patient.name }}</strong>
+            </div>
+            <div class="mini-stat dashboard-card-dark">
+                <span>Age</span>
+                <strong>{{ patient.age }}</strong>
+            </div>
+            <div class="mini-stat dashboard-card-dark">
+                <span>Blood Type</span>
+                <strong>{{ patient.blood }}</strong>
+            </div>
+            <div class="mini-stat dashboard-card-dark">
+                <span>Distance</span>
+                <strong id="distanceText">{{ patient.distance }}</strong>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <div class="dashboard-card dashboard-card-dark">
+                <div class="card-head">
+                    <h3>Patient Information</h3>
+                    <span class="status-pill safe" id="statusPill">SAFE</span>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item info-item-dark">
+                        <span>Full Name</span>
+                        <strong>Mohammed Alajmi</strong>
+                    </div>
+                    <div class="info-item info-item-dark">
+                        <span>Age</span>
+                        <strong>85 Years</strong>
+                    </div>
+                    <div class="info-item info-item-dark">
+                        <span>Blood Type</span>
+                        <strong>O+</strong>
+                    </div>
+                    <div class="info-item info-item-dark">
+                        <span>Patient Phone</span>
+                        <strong>+966 55 481 2397</strong>
+                    </div>
+                    <div class="info-item info-item-dark">
+                        <span>Guardian Phone</span>
+                        <strong>+966 54 762 1843</strong>
+                    </div>
+                    <div class="info-item info-item-dark">
+                        <span>Location</span>
+                        <strong>Riyadh, Saudi Arabia</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card dashboard-card-dark">
+                <div class="card-head">
+                    <h3>Quick Monitoring</h3>
+                </div>
+
+                <div class="monitor-list">
+                    <div class="monitor-row monitor-row-dark">
+                        <span>Safety Mode</span>
+                        <strong class="status-safe" id="monitorStatusText">SAFE</strong>
+                    </div>
+                    <div class="monitor-row monitor-row-dark">
+                        <span>Alert Level</span>
+                        <strong class="blue-text" id="alertLevelText">Low</strong>
+                    </div>
+                    <div class="monitor-row monitor-row-dark">
+                        <span>Safe Zone Radius</span>
+                        <strong>120 m</strong>
+                    </div>
+                    <div class="monitor-row monitor-row-dark">
+                        <span>Region</span>
+                        <strong>Riyadh</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card dashboard-card-dark full-span">
+                <div class="card-head">
+                    <h3>Live Map & Safe Zone</h3>
+                    <span class="map-label map-label-light">Riyadh • Real-Time View</span>
+                </div>
+                <div id="map"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/js/app.js?v=200"></script>
+</body>
+
+</html>

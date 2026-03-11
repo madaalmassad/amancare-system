@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Home</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=200" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="home-dark-page">
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg" alt="AmanCare Shield">
+            </div>
+            <div>
+                <h1>AmanCare</h1>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-links nav-links-light">
+            <a href="/" class="active-link">Home</a>
+            <a href="/login">Login</a>
+        </nav>
+    </header>
+
+    <main class="container home-main-wrap">
+        <section class="home-hero-card page-animated-bg">
+            <div class="bg-orb orb-a"></div>
+            <div class="bg-orb orb-b"></div>
+
+            <span class="dark-badge">Advanced Medical Monitoring</span>
+
+            <h2>Premium Hospital Platform for Smart Patient Safety and Live Tracking</h2>
+
+            <p class="hero-copy">
+                AmanCare is a polished healthcare monitoring platform designed to support elderly patient safety,
+                live location awareness, controlled safe-zone tracking, and fast caregiver visibility through
+                a clean and professional medical interface.
+            </p>
+
+            <div class="home-verse arabic">
+                <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+            </div>
+
+            <div class="hero-actions">
+                <a href="/login" class="btn btn-primary">Secure Login</a>
+                <a href="#records" class="btn btn-secondary">Patient Records</a>
+            </div>
+
+            <div class="hero-search-card" id="records">
+                <div class="hero-search-head">
+                    <h3>Search Patient Records</h3>
+                    <span class="mini-chip">Riyadh Medical Center</span>
+                </div>
+
+                <div class="search-box light-search">
+                    <input type="text" placeholder="Patient ID" />
+                    <button type="button">Search</button>
+                </div>
+            </div>
+
+            <div class="home-feature-grid">
+                <div class="home-feature-card">
+                    <div class="feature-icon">📍</div>
+                    <h3>Live Location</h3>
+                    <p>Track the patient location in real time and monitor movement within the approved safe zone.</p>
+                </div>
+
+                <div class="home-feature-card">
+                    <div class="feature-icon">🚨</div>
+                    <h3>Smart Alerts</h3>
+                    <p>Receive immediate status awareness when movement becomes risky or exits the allowed boundary.</p>
+                </div>
+
+                <div class="home-feature-card">
+                    <div class="feature-icon">💙</div>
+                    <h3>Caregiver View</h3>
+                    <p>Display patient details, contact information, monitoring state, and map activity in one place.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>
