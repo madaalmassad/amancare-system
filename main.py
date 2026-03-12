@@ -18,6 +18,29 @@ from starlette.middleware.sessions import SessionMiddleware
 # Load ENV
 # =========================================================
 load_dotenv(dotenv_path=".env")
+import os
+import requests
+
+def send_whatsapp_alert(message_text: str):
+    url = os.getenv("WATI_URL")
+    api_key = os.getenv("")
+    phone = os.getenv("ALERT_PHONE")
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "phone": phone,
+        "messageText": message_text
+    }
+
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=10)
+        print("WhatsApp status:", r.status_code, r.text)
+    except Exception as e:
+        print("WhatsApp error:", e)
 
 APP_NAME = os.getenv("APP_NAME", "AmanCare")
 
