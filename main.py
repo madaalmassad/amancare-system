@@ -23,8 +23,8 @@ import requests
 
 def send_whatsapp_alert(message_text: str):
     url = os.getenv("WATI_URL")
-    api_key = os.getenv("")
-    phone = os.getenv("ALERT_PHONE")
+    api_key = os.getenv("9735be70e03c2ce866f462a232e33496")
+    phone = os.getenv("966500137325")
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -35,6 +35,21 @@ def send_whatsapp_alert(message_text: str):
         "phone": phone,
         "messageText": message_text
     }
+
+    rsponse = requests.post(url, json=payload, headers=headers)
+
+    print(response.status_code)
+    print(response.text)
+    
+    send_whatsapp_alert(
+"""🚨 AmanCare Alert
+
+Patient: Mohammed Alajmi
+Status: Outside Safe Zone
+Location detected outside safe zone
+
+Immediate attention required"""
+)
 
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=10)
