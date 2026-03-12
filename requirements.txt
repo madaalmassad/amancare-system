@@ -1,6 +1,6 @@
 fastapi
 uvicorn
+starlette
+itsdangerous
 jinja2
 python-multipart
-requests
-python-dotenv
