@@ -1,7 +1,12 @@
-
 # ============================
-# ===== IMPORTS =====
+# IMPORTS
+# ============================
 import os
+import math
+import random
+import sqlite3
+from datetime import datetime, timezone
+
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -9,18 +14,39 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from twilio.rest import Client
 
+
+# ============================
+# APP SETUP
+# ============================
 app = FastAPI()
+app.state.last_alert_sent = False
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+
+templates = Jinja2Templates(
+    directory=os.path.join(BASE_DIR, "templates")
+)
+
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.join(BASE_DIR, "static")),
+    name="static"
+)
 
 app.add_middleware(SessionMiddleware, secret_key="secret123")
 
+
+# ============================
+# ROOT
+# ============================
 @app.get("/")
-def home():
+def root():
     return RedirectResponse(url="/login", status_code=302)
 
+
+# ============================
+# TWILIO
+# ============================
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 
@@ -28,24 +54,29 @@ client = None
 if account_sid and auth_token:
     client = Client(account_sid, auth_token)
 
-def send_whatsapp(msg):
+
+def send_whatsapp(msg: str):
     if not client:
-        return  
+        return
 
     client.messages.create(
-        from_='whatsapp:+14155238886',
+        from_="whatsapp:+14155238886",
         body=msg,
-        to='whatsapp:+966XXXXXXXXX'
+        to="whatsapp:+966XXXXXXXXX"  # حطي رقمك هنا
     )
 
 
-# DB
-DB_PATH = "amancare.db"
+# ============================
+# DATABASE
+# ============================
+DB_PATH = os.path.join(BASE_DIR, "amancare.db")
+
 
 def db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 def init_db():
     conn = db()
@@ -62,8 +93,21 @@ def init_db():
     )
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS telemetry (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        device_id TEXT,
+        lat REAL,
+        lon REAL,
+        status TEXT,
+        distance_km REAL,
+        created_at TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
+
 
 def log_event(event_type: str, username: str = "", role: str = "", details: str = ""):
     conn = db()
@@ -77,6 +121,7 @@ def log_event(event_type: str, username: str = "", role: str = "", details: str 
     )
     conn.commit()
     conn.close()
+
 
 @app.on_event("startup")
 def startup_event():
@@ -123,6 +168,8 @@ USERS = {
         "role": "doctor"
     }
 }
+
+
 # ============================
 # HELPERS
 # ============================
@@ -131,36 +178,42 @@ def require_login(request: Request):
         return False
     return True
 
+
 def require_role(request: Request, allowed_roles: list[str]) -> bool:
     if not request.session.get("logged_in"):
         return False
     user_role = request.session.get("role")
     return user_role in allowed_roles
 
+
 def haversine(lat1, lon1, lat2, lon2):
-    R = 6371
+    r = 6371
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
-    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1))*math.cos(math.radians(lat2))*math.sin(dlon/2)**2
-    return 2 * R * math.asin(math.sqrt(a))
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(math.radians(lat1))
+        * math.cos(math.radians(lat2))
+        * math.sin(dlon / 2) ** 2
+    )
+    return 2 * r * math.asin(math.sqrt(a))
+
 
 def get_status(lat, lon):
     dist = haversine(lat, lon, settings["safe_lat"], settings["safe_lon"])
     return ("ALERT" if dist > settings["safe_radius"] else "SAFE"), dist
 
-# ============================
-# ROUTES
-# ============================
-@app.get("/")
-def root():
-    return RedirectResponse("/login")
 
+# ============================
+# LOGIN
+# ============================
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse(
         "login.html",
         {"request": request, "error": None}
     )
+
 
 @app.post("/login", response_class=HTMLResponse)
 def login_post(
@@ -169,7 +222,6 @@ def login_post(
     username: str = Form(...),
     password: str = Form(...)
 ):
-    ...
     user = USERS.get(patient_id)
 
     if user and user["username"] == username and user["password"] == password:
@@ -178,7 +230,6 @@ def login_post(
         request.session["username"] = username
         request.session["role"] = user["role"]
 
-        import random
         otp = str(random.randint(1000, 9999))
         request.session["otp_code"] = otp
 
@@ -205,6 +256,9 @@ def login_post(
     )
 
 
+# ============================
+# OTP
+# ============================
 @app.get("/verify-otp", response_class=HTMLResponse)
 def verify_otp_page(request: Request):
     if not request.session.get("pending_2fa"):
@@ -218,7 +272,7 @@ def verify_otp_page(request: Request):
         }
     )
 
-# OTP
+
 @app.post("/verify-otp", response_class=HTMLResponse)
 def verify_otp_post(request: Request, otp: str = Form(...)):
     if not request.session.get("pending_2fa"):
@@ -240,18 +294,23 @@ def verify_otp_post(request: Request, otp: str = Form(...)):
         }
     )
 
+
+# ============================
 # LOGOUT
+# ============================
 @app.get("/logout")
 def logout(request: Request):
     request.session.clear()
-    return RedirectResponse("/login")
+    return RedirectResponse("/login", status_code=302)
 
-# DASHBOARD 
+
+# ============================
+# DASHBOARD / OVERVIEW
+# ============================
 @app.get("/dashboard")
 def dashboard(request: Request):
-
     if not require_login(request):
-        return RedirectResponse("/login")
+        return RedirectResponse("/login", status_code=302)
 
     return templates.TemplateResponse(
         "overview.html",
@@ -261,11 +320,11 @@ def dashboard(request: Request):
         }
     )
 
-# OVERVIEW
+
 @app.get("/overview")
 def overview(request: Request):
     if not require_login(request):
-        return RedirectResponse("/login")
+        return RedirectResponse("/login", status_code=302)
 
     return templates.TemplateResponse(
         "overview.html",
@@ -275,14 +334,25 @@ def overview(request: Request):
         }
     )
 
-# MEDICAL
+
+# ============================
+# MEDICAL PROFILE
+# ============================
 @app.get("/medical-profile")
 def medical_profile(request: Request):
-    return templates.TemplateResponse("medical_profile.html", {
-        "request": request,
-        "role": request.session.get("role"),
-        "patient": PATIENT
-    })
+    if not require_login(request):
+        return RedirectResponse("/login", status_code=302)
+
+    return templates.TemplateResponse(
+        "medical_profile.html",
+        {
+            "request": request,
+            "role": request.session.get("role"),
+            "patient": PATIENT
+        }
+    )
+
+
 @app.post("/update-medical-profile")
 async def update_medical_profile(
     request: Request,
@@ -301,10 +371,12 @@ async def update_medical_profile(
 
     return RedirectResponse("/medical-profile?updated=1", status_code=303)
 
-# LIVE MONITOR
-@app.get("/live-monitoring")
-def live(request: Request):
 
+# ============================
+# LIVE MONITORING
+# ============================
+@app.get("/live-monitoring")
+def live_monitoring(request: Request):
     if not require_login(request):
         return RedirectResponse("/login", status_code=302)
 
@@ -321,24 +393,14 @@ def live(request: Request):
     row = cur.fetchone()
     conn.close()
 
-    SAFE_LAT = 24.7136
-    SAFE_LON = 46.6753
-
+    latest_data = None
     if row:
-        lat = row[0]
-        lon = row[1]
-        status = row[2]
-
-        distance = ((lat - SAFE_LAT) ** 2 + (lon - SAFE_LON) ** 2) ** 0.5 * 111
-
         latest_data = {
-            "lat": lat,
-            "lon": lon,
-            "status": status,
-            "distance": round(distance, 2)
+            "lat": row["lat"],
+            "lon": row["lon"],
+            "status": row["status"],
+            "distance": round(row["distance_km"], 2) if row["distance_km"] is not None else 0
         }
-    else:
-        latest_data = None
 
     return templates.TemplateResponse(
         "live_monitoring.html",
@@ -349,18 +411,14 @@ def live(request: Request):
         }
     )
 
-# LOCATION CONTROL
-@app.get("/location-control")
-def location(request: Request):
 
+# ============================
+# LOCATION CONTROL
+# ============================
+@app.get("/location-control")
+def location_control(request: Request):
     if not require_role(request, ["admin"]):
         return RedirectResponse("/dashboard", status_code=302)
-
-    print("SAFE_ZONE:", {
-        "lat": settings["safe_lat"],
-        "lng": settings["safe_lon"],
-        "radius": settings["safe_radius"]
-    })
 
     return templates.TemplateResponse(
         "location_control.html",
@@ -374,20 +432,11 @@ def location(request: Request):
             }
         }
     )
- # TELEMETRY 
-@app.get("/live-monitoring")
-def live_monitoring(request: Request):
-    if not require_login(request):
-        return RedirectResponse("/login", status_code=302)
 
-    return templates.TemplateResponse(
-        "live_monitoring.html",
-        {
-            "request": request,
-            "patient": PATIENT
-        }
-    )
 
+# ============================
+# API: LATEST TELEMETRY
+# ============================
 @app.get("/api/latest-telemetry")
 def latest_telemetry():
     conn = db()
@@ -408,28 +457,28 @@ def latest_telemetry():
 
     return {
         "ok": True,
-        "lat": row[0],
-        "lon": row[1],
-        "status": row[2],
-        "distance": row[3]
+        "lat": row["lat"],
+        "lon": row["lon"],
+        "status": row["status"],
+        "distance": row["distance_km"]
     }
+
+
+# ============================
+# API: RECEIVE TELEMETRY
+# ============================
 @app.post("/telemetry")
 async def receive_telemetry(data: dict):
-
-  
     device_id = data.get("device_id", "chip1")
     lat = float(data.get("lat", 0))
     lon = float(data.get("lon", 0))
 
-   
     safe_lat = float(settings.get("safe_lat", 24.7136))
     safe_lon = float(settings.get("safe_lon", 46.6753))
     safe_radius = float(settings.get("safe_radius", 0.2))
 
-    
     distance_km = ((lat - safe_lat) ** 2 + (lon - safe_lon) ** 2) ** 0.5 * 111
 
-    
     if distance_km <= safe_radius:
         status = "SAFE"
         app.state.last_alert_sent = False
@@ -444,13 +493,10 @@ async def receive_telemetry(data: dict):
 
             app.state.last_alert_sent = True
 
-    
     created_at = datetime.now(timezone.utc).isoformat()
 
-   
-    conn = sqlite3.connect("amancare.db")
+    conn = db()
     cur = conn.cursor()
-
     cur.execute("""
         INSERT INTO telemetry (device_id, lat, lon, status, distance_km, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -466,14 +512,15 @@ async def receive_telemetry(data: dict):
     conn.commit()
     conn.close()
 
-    
     return {
         "ok": True,
         "status": status,
         "distance_km": distance_km
     }
+
+
 # ============================
-# UPDATE LOCATION 
+# UPDATE SAFE ZONE
 # ============================
 @app.post("/update-safe-zone")
 async def update_safe_zone(request: Request):
@@ -505,6 +552,10 @@ async def update_safe_zone(request: Request):
         }
     })
 
+
+# ============================
+# API: SAFE ZONE
+# ============================
 @app.get("/api/safe-zone")
 def get_safe_zone():
     return {
