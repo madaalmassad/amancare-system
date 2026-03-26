@@ -210,9 +210,9 @@ def get_status(lat, lon):
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": None}
-    )
+    "login.html",
+    {"request": request, "error": None}
+)
 
 @app.post("/login", response_class=HTMLResponse)
 def login_post(
