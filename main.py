@@ -1,49 +1,43 @@
 
 # ============================
 # ===== IMPORTS =====
-import os, math, sqlite3, hashlib
-from datetime import datetime, timezone
-from aiohttp import request
-
+import os
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-import os
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from twilio.rest import Client
 
-# ===== APP =====
-app = FastAPI()
-@app.get("/")
-def home():
-    return {"status": "AmanCare is running "}
-app.state.last_alert_sent = False
-
-import os
-account_sid = os.getenv("TWILIO_ACCOUNT_SID")
-auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-client = Client(account_sid, auth_token)
-
-
-def send_whatsapp(msg):
-    message = client.messages.create(
-        from_='whatsapp:+14155238886',
-        body=msg,
-        to='whatsapp:+966500137325'
-    )
-
-# ============================
-# APP
-# ============================
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 app.add_middleware(SessionMiddleware, secret_key="secret123")
+
+@app.get("/")
+def home():
+    return RedirectResponse(url="/login", status_code=302)
+
+account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+
+client = None
+if account_sid and auth_token:
+    client = Client(account_sid, auth_token)
+
+def send_whatsapp(msg):
+    if not client:
+        return  
+
+    client.messages.create(
+        from_='whatsapp:+14155238886',
+        body=msg,
+        to='whatsapp:+966XXXXXXXXX'
+    )
+
 
 # DB
 DB_PATH = "amancare.db"
@@ -160,10 +154,13 @@ def get_status(lat, lon):
 @app.get("/")
 def root():
     return RedirectResponse("/login")
-#LOGIN
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": None}
+    )
 
 @app.post("/login", response_class=HTMLResponse)
 def login_post(
@@ -172,6 +169,7 @@ def login_post(
     username: str = Form(...),
     password: str = Form(...)
 ):
+    ...
     user = USERS.get(patient_id)
 
     if user and user["username"] == username and user["password"] == password:
