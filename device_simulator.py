@@ -17,7 +17,7 @@ load_dotenv(dotenv_path=".env")
 # =========================
 # Config
 # =========================
-BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+BASE_URL = "https://amancare-system-94wm.onrender.com"
 DEVICE_ID = os.getenv("DEVICE_ID", "chip1")
 DEVICE_API_KEY = os.getenv("DEVICE_API_KEY", "amancare_device_key_2026")
 SHA256_SALT = os.getenv("SHA256_SALT", "amancare_hmac_secret_2026")
