@@ -8,6 +8,10 @@ from aiohttp import request
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from twilio.rest import Client
@@ -38,7 +42,6 @@ def send_whatsapp(msg):
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(SessionMiddleware, secret_key="secret123")
 
