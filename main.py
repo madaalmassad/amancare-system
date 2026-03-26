@@ -159,15 +159,12 @@ def get_status(lat, lon):
 # ============================
 @app.get("/")
 def root():
-    return RedirectResponse("/login")
+    return {"status": "AmanCare is running 🚀"}
 
 # LOGIN
-@app.get("/login", response_class=HTMLResponse)
-def login_page(request: Request):
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": None}
-    )
+# @app.get("/login", response_class=HTMLResponse)
+# def login_page(request: Request):
+#     return templates.TemplateResponse("login.html", {"request": request, "error": None})
 
 
 @app.post("/login", response_class=HTMLResponse)
