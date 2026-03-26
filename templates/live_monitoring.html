@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Live Monitoring</title>
+
+    <link rel="stylesheet" href="/static/css/style.css?v=10003" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        #map {
+            width: 100%;
+            height: 380px;
+            border-radius: 22px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body class="dashboard-dark-page">
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg" alt="AmanCare Shield">
+            </div>
+            <div>
+                <h2>AmanCare</h2>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-links nav-links-light">
+            <a href="/">Home</a>
+            <a href="/overview">Overview</a>
+            <a href="/medical-profile">Medical Profile</a>
+            <a href="/live-monitoring" class="active-link">Live Monitoring</a>
+
+            {% if request.session.get("role") == "admin" %}
+            <a href="/location-control">Location Control</a>
+            {% endif %}
+
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <main class="container dashboard-dark-wrap">
+        <section class="dashboard-dark-hero page-animated-bg dashboard-hero-box">
+            <div class="bg-orb orb-a"></div>
+            <div class="bg-orb orb-b"></div>
+
+            <div class="dashboard-dark-left">
+                <span class="hero-badge">Patient Live Monitoring</span>
+                <h2>AmanCare Patient Live Monitoring</h2>
+                <p>
+                    Track the patient’s real-time location, movement status, and safety zone
+                    activity to ensure continuous monitoring and immediate response.
+                </p>
+            </div>
+
+            <div class="dashboard-top-side">
+                <div class="verse-panel arabic dashboard-verse-top">
+                    <span class="verse-label">Quranic Verse</span>
+                    <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+                </div>
+
+                <div class="status-box safe-box" id="mainStatusBox">
+                    <span>Current Status</span>
+                    <strong class="status-safe" id="mainStatusText">SAFE</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="patient-clean-wrap">
+            <div class="patient-clean-head">
+                <h3>Live Monitoring</h3>
+                <span class="status-pill safe" id="topBadgeStatus">SAFE</span>
+            </div>
+
+            <div class="patient-clean-grid patient-grid-3">
+                <div class="patient-field">
+                    <span>Current Status</span>
+                    <strong id="liveStatus">SAFE</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Current Location</span>
+                    <strong id="liveLocation">24.7136, 46.6753</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Zone Status</span>
+                    <strong id="zoneStatus">Inside Safe Zone</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Distance from Safe Zone</span>
+                    <strong id="liveDistance">0.0 km</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Last Update</span>
+                    <strong id="liveUpdated">Live</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Movement Status</span>
+                    <strong id="movementStatus">SAFE</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="patient-clean-wrap">
+            <h3 class="section-title-light">Live Location Map</h3>
+
+            <div class="map-center-wrap">
+                <div class="map-circle-shell">
+                    <div id="alertBox" style="
+    display:none;
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:#dc2626;
+    color:white;
+    padding:15px 20px;
+    border-radius:12px;
+    font-weight:bold;
+    z-index:9999;
+">
+                        Patient is OUTSIDE Safe Zone!
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        let map = null;
+        let patientMarker = null;
+        let safeZoneCircle = null;
+        let trailLine = null;
+        let pathPoints = [];
+        let liveInterval = null;
+
+        let safeZoneLat = 24.7136;
+        let safeZoneLon = 46.6753;
+        let safeZoneRadius = 0.05; // 80 متر كبداية
+
+        async function initMap() {
+            if (map) return; // يمنع إنشاء الخريطة مرتين
+
+            const safeRes = await fetch("/api/safe-zone");
+            const safeData = await safeRes.json();
+
+            safeZoneLat = parseFloat(safeData.lat);
+            safeZoneLon = parseFloat(safeData.lon);
+            safeZoneRadius = parseFloat(safeData.radius);
+
+            map = L.map("map").setView([safeZoneLat, safeZoneLon], 16);
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap contributors"
+            }).addTo(map);
+
+            safeZoneCircle = L.circle([safeZoneLat, safeZoneLon], {
+                radius: safeZoneRadius * 1000,
+                color: "#16a34a",
+                fillColor: "#22c55e",
+                fillOpacity: 0.06,
+                weight: 2
+            }).addTo(map);
+
+            const patientIcon = L.divIcon({
+                className: "",
+                html: `
+                <div style="
+                    width:22px;
+                    height:22px;
+                    background:#2563eb;
+                    border:4px solid #ffffff;
+                    border-radius:50%;
+                    box-shadow:0 0 0 4px rgba(37,99,235,0.18);
+                "></div>
+            `,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+            });
+
+            patientMarker = L.marker([safeZoneLat, safeZoneLon], { icon: patientIcon }).addTo(map);
+
+            trailLine = L.polyline([], {
+                color: "#2563eb",
+                weight: 6,
+                opacity: 0.85
+            }).addTo(map);
+        }
+
+        function smoothMoveMarker(marker, newLatLng, duration = 400) {
+            const start = marker.getLatLng();
+            const startTime = performance.now();
+
+            function animate(time) {
+                const progress = Math.min((time - startTime) / duration, 1);
+                const currentLat = start.lat + (newLatLng[0] - start.lat) * progress;
+                const currentLng = start.lng + (newLatLng[1] - start.lng) * progress;
+
+                marker.setLatLng([currentLat, currentLng]);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        let wasAlert = false;
+
+        let alarmAudio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+        alarmAudio.loop = true;
+
+        async function refreshLiveMonitoring() {
+            try {
+                const [telemetryRes, safeRes] = await Promise.all([
+                    fetch("/api/latest-telemetry"),
+                    fetch("/api/safe-zone")
+                ]);
+
+                const telemetry = await telemetryRes.json();
+                const safeData = await safeRes.json();
+
+                if (!telemetry.ok) return;
+
+                safeZoneLat = parseFloat(safeData.lat);
+                safeZoneLon = parseFloat(safeData.lon);
+                safeZoneRadius = parseFloat(safeData.radius);
+
+                const lat = parseFloat(telemetry.lat);
+                const lon = parseFloat(telemetry.lon);
+                const status = telemetry.status;
+
+                const safeZoneMeters = 100;
+
+                safeZoneCircle.setRadius(safeZoneMeters);
+
+                const distance = map.distance(
+                    [safeZoneLat, safeZoneLon],
+                    [lat, lon]
+                );
+
+                const isAlert = distance > safeZoneMeters;
+                if (isAlert && !wasAlert) {
+                    document.getElementById("alertBox").style.display = "block";
+
+                    alarmAudio.play();
+
+                    wasAlert = true;
+                }
+
+                if (!isAlert) {
+                    document.getElementById("alertBox").style.display = "none";
+
+                    alarmAudio.pause();
+                    alarmAudio.currentTime = 0;
+
+                    wasAlert = false;
+                }
+
+                document.getElementById("liveStatus").textContent = status;
+                document.getElementById("liveLocation").textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                document.getElementById("zoneStatus").textContent = isAlert ? "Outside Safe Zone" : "Inside Safe Zone";
+                document.getElementById("liveDistance").textContent = `${telemetry.distance ?? telemetry.distance_km ?? 0} km`;
+                document.getElementById("liveUpdated").textContent = new Date().toLocaleTimeString();
+                document.getElementById("movementStatus").textContent = isAlert ? "ALERT" : "SAFE";
+
+                const mainStatusText = document.getElementById("mainStatusText");
+                const topBadgeStatus = document.getElementById("topBadgeStatus");
+                const mainStatusBox = document.getElementById("mainStatusBox");
+
+                mainStatusText.textContent = status;
+                mainStatusText.className = isAlert ? "status-alert" : "status-safe";
+
+                topBadgeStatus.textContent = status;
+                topBadgeStatus.className = isAlert ? "status-pill alert" : "status-pill safe";
+
+                mainStatusBox.className = isAlert ? "status-box alert-box" : "status-box safe-box";
+                safeZoneCircle.setLatLng([safeZoneLat, safeZoneLon]);
+
+                // 👇 حددي حجم ثابت عشان ما يخرب
+                safeZoneCircle.setRadius(120);
+                safeZoneCircle.setStyle({
+                    color: isAlert ? "#dc2626" : "#16a34a",
+                    fillColor: isAlert ? "#ef4444" : "#22c55e",
+                    fillOpacity: 0.08,
+                    weight: 2
+                });
+                smoothMoveMarker(patientMarker, [lat, lon], 400);
+
+                const lastPoint = pathPoints[pathPoints.length - 1];
+                if (!lastPoint || lastPoint[0] !== lat || lastPoint[1] !== lon) {
+                    pathPoints.push([lat, lon]);
+                }
+
+                if (pathPoints.length > 40) {
+                    pathPoints.shift();
+                }
+
+                trailLine.setLatLngs(pathPoints);
+
+                patientMarker.bindPopup(`
+                <div style="min-width:170px;">
+                    <strong>Patient Monitor</strong><br>
+                    Status: ${status}<br>
+                    Distance: ${telemetry.distance ?? telemetry.distance_km ?? 0} km<br>
+                    Lat: ${lat.toFixed(6)}<br>
+                    Lon: ${lon.toFixed(6)}
+                </div>
+            `);
+
+                map.panTo([lat, lon], { animate: true });
+
+            } catch (error) {
+                console.log("Live update error:", error);
+            }
+        }
+
+        async function startLiveMonitoring() {
+            await initMap();
+            await refreshLiveMonitoring();
+
+            if (liveInterval) clearInterval(liveInterval);
+            liveInterval = setInterval(refreshLiveMonitoring, 2000);
+        }
+
+        startLiveMonitoring();
+    </script>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Login</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=200" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="login-page">
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg" alt="AmanCare Shield">
+            </div>
+            <div>
+                <h1>AmanCare</h1>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-links nav-links-light">
+            <a href="/">Home</a>
+        </nav>
+    </header>
+
+    <main class="container single-login-page">
+        <section class="full-login-card page-animated-bg">
+            <div class="bg-orb orb-a"></div>
+            <div class="bg-orb orb-b"></div>
+
+            <div class="login-top-row">
+                <span class="dark-badge">Protected Medical Access</span>
+
+                <div class="verse-panel arabic verse-top-right">
+                    <span class="verse-label">Quranic Verse</span>
+                    <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+                </div>
+            </div>
+
+            <h2>Welcome Back</h2>
+
+            <form action="/login" method="post" class="login-form centered-form">
+                <div class="full-search-wrap">
+                    <input type="text" name="patient_id" placeholder="Patient ID or Doctor ID" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <input type="text" name="username" placeholder="Enter your username" required />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" name="password" placeholder="Enter your password" required />
+                    </div>
+                </div>
+
+                {% if error %}
+                <div class="login-error">{{ error }}</div>
+                {% endif %}
+
+                <div class="login-buttons-under">
+                    <button type="submit" class="btn btn-primary">Login to AmanCare</button>
+                </div>
+
+            </form>
+        </section>
+    </main>
+</body>
+
+</html>

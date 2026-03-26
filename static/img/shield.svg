@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2C7BFF"/>
+      <stop offset="1" stop-color="#1BB6FF"/>
+    </linearGradient>
+    <linearGradient id="innerGlow" x1="20" y1="18" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#EAF4FF" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="64" height="64" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#155EEF" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="8" y="8" width="48" height="48" rx="14" fill="url(#bg)"/>
+    <circle cx="24" cy="20" r="10" fill="white" fill-opacity="0.12"/>
+    <path d="M32 18L22 22.3V30.1C22 36.5 25.9 42.4 32 44.7C38.1 42.4 42 36.5 42 30.1V22.3L32 18Z" fill="url(#innerGlow)"/>
+    <path d="M32 26.4C30.35 26.4 29 27.75 29 29.4C29 30.6 29.7 31.65 30.75 32.1V35.2H33.25V32.1C34.3 31.65 35 30.6 35 29.4C35 27.75 33.65 26.4 32 26.4Z" fill="#1A63FF"/>
+  </g>
+</svg>

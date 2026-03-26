@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Overview</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=7777" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="dashboard-dark-page">
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg" alt="AmanCare Shield">
+            </div>
+            <div>
+                <h2>AmanCare</h2>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+        <nav class="nav-links nav-links-light">
+            <a href="/">Home</a>
+            <a href="/overview">Overview</a>
+            <a href="/medical-profile">Medical Profile</a>
+            <a href="/live-monitoring">Live Monitoring</a>
+
+            {% if request.session.get("role") == "admin" %}
+            <a href="/location-control">Location Control</a>
+            {% endif %}
+
+            <a href="/logout">Logout</a>
+        </nav>
+
+    </header>
+
+    <main class="container dashboard-dark-wrap">
+        <section class="dashboard-dark-hero page-animated-bg dashboard-hero-box">
+            <div class="bg-orb orb-a"></div>
+            <div class="bg-orb orb-b"></div>
+
+            <div class="dashboard-dark-left">
+                <span class="hero-badge">Patient Live Monitoring</span>
+                <h2>AmanCare Patient Overview</h2>
+                <p>
+                    Get a complete overview of the patient including personal information,
+                    current status, and essential monitoring details in one unified dashboard.
+                </p>
+            </div>
+
+            <div class="dashboard-top-side">
+                <div class="verse-panel arabic dashboard-verse-top">
+                    <span class="verse-label">Quranic Verse</span>
+                    <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+                </div>
+
+                <div class="status-box safe-box dashboard-status-dark" id="mainStatusBox">
+                    <span>Current Status</span>
+                    <strong class="status-safe" id="mainStatusText">{{ patient.status }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="patient-clean-wrap">
+            <div class="patient-clean-head">
+                <h3>Patient Information</h3>
+                <span id="statusBadge" class="status-pill safe">SAFE</span>
+            </div>
+
+            <div class="patient-clean-sections">
+                <div class="patient-clean-grid patient-grid-3">
+                    <div class="patient-field">
+                        <span>Full Name</span>
+                        <strong>{{ patient.name }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Gender</span>
+                        <strong>{{ patient.gender }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Age</span>
+                        <strong>{{ patient.age }} Years</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Blood Type</span>
+                        <strong>{{ patient.blood }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Nationality</span>
+                        <strong>{{ patient.nationality }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>ID / Iqama Number</span>
+                        <strong>{{ patient.id_number }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Diagnosis</span>
+                        <strong>{{ patient.diagnosis }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Phone Number</span>
+                        <strong>{{ patient.phone }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Guardian Number</span>
+                        <strong>{{ patient.guardian_phone }}</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        async function updateStatusBadge() {
+            try {
+                const res = await fetch("/api/latest-telemetry");
+                const data = await res.json();
+
+                if (!data.ok) return;
+
+                const status = data.status; // SAFE أو ALERT
+                const badge = document.getElementById("statusBadge");
+
+                if (!badge) return;
+
+                if (status === "ALERT") {
+                    badge.textContent = "ALERT";
+                    badge.className = "status-pill alert";
+                } else {
+                    badge.textContent = "SAFE";
+                    badge.className = "status-pill safe";
+                }
+
+            } catch (err) {
+                console.log("Status error:", err);
+            }
+        }
+
+        // تحديث مستمر
+        setInterval(updateStatusBadge, 2000);
+
+        // أول تحميل
+        updateStatusBadge();
+    </script>
+</body>
+<script>
+    async function updateGlobalStatus() {
+        try {
+            const res = await fetch("/api/latest-telemetry");
+            const data = await res.json();
+
+            if (!data.ok) return;
+
+            const status = data.status;
+            const isAlert = status === "ALERT";
+
+            // كل الأماكن اللي فيها status
+            const elements = document.querySelectorAll(
+                "#mainStatusText, #topBadgeStatus, #liveStatus, .globalStatus"
+            );
+
+            elements.forEach(el => {
+                el.textContent = status;
+
+                if (el.classList.contains("status-pill")) {
+                    el.className = isAlert ? "status-pill alert" : "status-pill safe";
+                }
+
+                if (el.id === "mainStatusText") {
+                    el.className = isAlert ? "status-alert" : "status-safe";
+                }
+            });
+
+            // البوكس الكبير
+            const mainBox = document.getElementById("mainStatusBox");
+            if (mainBox) {
+                mainBox.className = isAlert ? "status-box alert-box" : "status-box safe-box";
+            }
+
+        } catch (e) {
+            console.log("Global status error:", e);
+        }
+    }
+
+    // يحدث كل الصفحات
+    setInterval(updateGlobalStatus, 2000);
+    updateGlobalStatus();
+</script>
+
+</html>

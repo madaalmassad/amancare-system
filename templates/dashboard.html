@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Dashboard</title>
+
+    <link rel="stylesheet" href="/static/css/style.css?v=9999" />
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Tajawal:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="dashboard-dark-page">
+
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg">
+            </div>
+            <div>
+                <h2>AmanCare</h2>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-links nav-links-light">
+            <a href="/">Home</a>
+            <a href="/dashboard" class="active-link">Dashboard</a>
+            <a href="/overview">Overview</a>
+            <a href="/medical-profile">Medical Profile</a>
+            <a href="/live-monitoring">Live Monitoring</a>
+            <a href="/location-control">Location Control</a>
+            <a href="/logout">Logout</a>
+        </nav>
+
+    </header>
+
+    <main class="container dashboard-dark-wrap">
+
+        <!-- HERO -->
+        <section class="dashboard-dark-hero dashboard-hero-box">
+            <div class="dashboard-dark-left">
+                <span class="hero-badge">Patient Live Monitoring</span>
+                <h2>AmanCare Patient Monitoring Dashboard</h2>
+                <p>
+                    Monitor live location, patient status, and medical data from one powerful dashboard.
+                </p>
+            </div>
+
+            <div class="dashboard-top-side">
+                <div class="verse-panel arabic">
+                    <span class="verse-label">Quranic Verse</span>
+                    <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+                </div>
+
+                <div class="status-box safe-box">
+                    <span>Current Status</span>
+                    <strong class="status-safe">{{ patient.status }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- PATIENT INFO -->
+        <section class="patient-clean-wrap">
+
+            <div class="patient-clean-head">
+                <h3>Patient Information</h3>
+                <span class="status-pill safe">{{ patient.status }}</span>
+            </div>
+
+            <div class="patient-clean-card">
+                <h4>Basic Info</h4>
+
+                <div class="patient-clean-grid patient-grid-3">
+
+                    <div class="patient-field">
+                        <span>Full Name</span>
+                        <strong>{{ patient.name }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Age</span>
+                        <strong>{{ patient.age }} Years</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Blood Type</span>
+                        <strong>{{ patient.blood }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Nationality</span>
+                        <strong>{{ patient.nationality }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>ID / Iqama</span>
+                        <strong>{{ patient.id_number }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Diagnosis</span>
+                        <strong>{{ patient.diagnosis }}</strong>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- MEDICAL -->
+            <div class="patient-clean-card">
+                <h4>Medical Details</h4>
+
+                <div class="patient-clean-grid patient-grid-2">
+
+                    <div class="patient-field">
+                        <span>Height</span>
+                        <strong>{{ patient.height }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Weight</span>
+                        <strong>{{ patient.weight }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Allergies</span>
+                        <strong>{{ patient.allergies }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Diseases</span>
+                        <strong>{{ patient.diseases }}</strong>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CONTACT -->
+            <div class="patient-clean-card">
+                <h4>Contact Details</h4>
+
+                <div class="patient-field">
+                    <span>Guardian Phone</span>
+                    <strong>{{ patient.guardian_phone }}</strong>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- MAP -->
+        <section class="dashboard-card dashboard-card-dark map-panel-clean">
+
+            <div class="map-top-bar">
+                <h3>Live Map</h3>
+
+                <div class="map-mini-stats">
+
+                    <div class="map-mini-item">
+                        <span>Latitude</span>
+                        <strong>{{ patient_lat }}</strong>
+                    </div>
+
+                    <div class="map-mini-item">
+                        <span>Longitude</span>
+                        <strong>{{ patient_lon }}</strong>
+                    </div>
+
+                    <div class="map-mini-item">
+                        <span>Radius</span>
+                        <strong>{{ safe_radius_km }} KM</strong>
+                    </div>
+
+                    <div class="map-mini-item">
+                        <span>Status</span>
+                        <strong class="status-safe">{{ patient.status }}</strong>
+                    </div>
+
+                    <div class="map-mini-item">
+                        <span>Region</span>
+                        <strong>Riyadh</strong>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="map-center-wrap">
+                <div class="map-circle-shell">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/js/app.js?v=9999"></script>
+
+</body>
+
+</html>

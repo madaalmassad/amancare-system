@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Verify OTP</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=9999" />
+</head>
+
+<body class="dashboard-dark-page">
+    <div class="site-bg"></div>
+
+    <main class="container" style="padding-top:80px; max-width:520px;">
+        <div class="patient-clean-card">
+            <h2 style="margin-bottom:18px;">Two-Factor Verification</h2>
+            <p style="margin-bottom:16px;">Enter the verification code to continue.</p>
+
+            {% if error %}
+            <div
+                style="background: rgba(220,38,38,0.10); color:#b91c1c; border:1px solid rgba(220,38,38,0.2); padding:12px 14px; border-radius:12px; margin-bottom:14px;">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="post" action="/verify-otp">
+                <input type="text" name="otp" placeholder="Enter OTP code"
+                    style="width:100%; height:52px; border-radius:14px; border:1px solid #d1d5db; padding:0 14px; margin-bottom:14px;"
+                    required />
+
+                <button type="submit" class="btn btn-primary" style="width:100%;">
+                    Verify OTP
+                </button>
+            </form>
+            <p style="margin-top:14px; color:#6b7280;">
+                Enter the one-time password generated for this session.
+            </p>
+        </div>
+    </main>
+</body>
+
+</html>

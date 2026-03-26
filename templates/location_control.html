@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmanCare | Location Control</title>
+
+    <link rel="stylesheet" href="/static/css/style.css?v=10001" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="dashboard-dark-page">
+    <div class="site-bg"></div>
+
+    <header class="topbar container topbar-overlay">
+        <div class="brand brand-light">
+            <div class="brand-logo">
+                <img src="/static/img/shield.svg" alt="AmanCare Shield">
+            </div>
+            <div>
+                <h2>AmanCare</h2>
+                <p>Secure Hospital Monitoring Platform</p>
+            </div>
+        </div>
+
+        <nav class="nav-links nav-links-light">
+            <a href="/">Home</a>
+            <a href="/overview">Overview</a>
+            <a href="/medical-profile">Medical Profile</a>
+            <a href="/live-monitoring">Live Monitoring</a>
+
+            {% if request.session.get("role") == "admin" %}
+            <a href="/location-control" class="active-link">Location Control</a>
+            {% endif %}
+
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <main class="container dashboard-dark-wrap">
+
+        <section class="dashboard-dark-hero page-animated-bg dashboard-hero-box">
+            <div class="bg-orb orb-a"></div>
+            <div class="bg-orb orb-b"></div>
+
+            <div class="dashboard-dark-left">
+                <span class="hero-badge">Location Control</span>
+                <h2>AmanCare Patient Location Control</h2>
+                <p>
+                    Control and update the patient’s safe zone center and radius directly
+                    from the admin dashboard with instant confirmation.
+                </p>
+            </div>
+
+            <div class="dashboard-top-side" style="display:flex; flex-direction:column; gap:18px;">
+                <div class="verse-panel arabic dashboard-verse-top">
+                    <span class="verse-label">Quranic Verse</span>
+                    <p>{ فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ }</p>
+                </div>
+
+                <div id="mainStatusBox" class="status-box safe-box">
+                    <span>Current Status</span>
+                    <strong id="mainStatusText" class="status-safe">SAFE</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="patient-clean-wrap">
+            <div class="patient-clean-head">
+                <h3>Location Settings</h3>
+                <span class="status-pill safe globalStatus">SAFE</span>
+            </div>
+
+            <div class="patient-clean-grid patient-grid-3">
+                <div class="patient-field">
+                    <span>Latitude</span>
+                    <strong id="currentLatTop">{{ safe_zone.lat }}</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Longitude</span>
+                    <strong id="currentLngTop">{{ safe_zone.lng }}</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Current Radius</span>
+                    <strong id="currentRadiusTop">{{ safe_zone.radius }} KM</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Zone Status</span>
+                    <strong id="currentZoneStatus">Inside Safe Zone</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Alert Level</span>
+                    <strong id="currentAlertLevel">Low</strong>
+                </div>
+
+                <div class="patient-field">
+                    <span>Region</span>
+                    <strong id="currentRegion">Riyadh</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="patient-clean-wrap">
+            <div class="patient-clean-card">
+                <h4>Update Safe Zone</h4>
+
+                <div id="safeZoneMessage"
+                    style="display:none; margin-bottom:16px; padding:12px 14px; border-radius:14px; font-weight:700;">
+                </div>
+
+                <div class="patient-clean-grid patient-grid-3" style="margin-bottom:18px;">
+                    <div class="patient-field">
+                        <span>Current Latitude</span>
+                        <strong id="currentLat">{{ safe_zone.lat }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Current Longitude</span>
+                        <strong id="currentLng">{{ safe_zone.lng }}</strong>
+                    </div>
+
+                    <div class="patient-field">
+                        <span>Current Radius</span>
+                        <strong id="currentRadius">{{ safe_zone.radius }} KM</strong>
+                    </div>
+                </div>
+
+                <form id="safeZoneForm">
+                    <div class="patient-clean-grid patient-grid-3">
+                        <div class="patient-field">
+                            <span>New Latitude</span>
+                            <input id="latInput" type="number" step="any" value="{{ safe_zone.lat }}"
+                                style="margin-top:8px; width:100%; height:48px; border-radius:12px; border:1px solid #d1d5db; padding:0 12px; color:#000; background:#fff;">
+                        </div>
+
+                        <div class="patient-field">
+                            <span>New Longitude</span>
+                            <input id="lngInput" type="number" step="any" value="{{ safe_zone.lng }}"
+                                style="margin-top:8px; width:100%; height:48px; border-radius:12px; border:1px solid #d1d5db; padding:0 12px; color:#000; background:#fff;">
+                        </div>
+
+                        <div class="patient-field">
+                            <span>New Radius (KM)</span>
+                            <input id="radiusInput" type="number" step="any" min="0.1" value="{{ safe_zone.radius }}"
+                                style="margin-top:8px; width:100%; height:48px; border-radius:12px; border:1px solid #d1d5db; padding:0 12px; color:#000; background:#fff;">
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:22px;">
+                        <button type="submit" class="btn btn-primary">Update Safe Zone</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        async function updateGlobalStatus() {
+            try {
+                const res = await fetch("/api/latest-telemetry");
+                const data = await res.json();
+
+                if (!data.ok) return;
+
+                const status = data.status;
+                const isAlert = status === "ALERT";
+
+                const mainText = document.getElementById("mainStatusText");
+                if (mainText) {
+                    mainText.textContent = status;
+                    mainText.className = isAlert ? "status-alert" : "status-safe";
+                }
+
+                const mainBox = document.getElementById("mainStatusBox");
+                if (mainBox) {
+                    mainBox.classList.remove("safe-box", "alert-box");
+                    mainBox.classList.add(isAlert ? "alert-box" : "safe-box");
+                }
+
+                document.querySelectorAll(".globalStatus").forEach(el => {
+                    el.textContent = status;
+                    el.classList.remove("safe", "alert");
+                    el.classList.add(isAlert ? "alert" : "safe");
+                });
+
+                const zoneStatus = document.getElementById("currentZoneStatus");
+                const alertLevel = document.getElementById("currentAlertLevel");
+
+                if (zoneStatus) {
+                    zoneStatus.textContent = isAlert ? "Outside Safe Zone" : "Inside Safe Zone";
+                }
+
+                if (alertLevel) {
+                    alertLevel.textContent = isAlert ? "High" : "Low";
+                }
+
+            } catch (e) {
+                console.log("Global status error:", e);
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("safeZoneForm");
+            const messageBox = document.getElementById("safeZoneMessage");
+
+            function showMessage(text, type = "success") {
+                if (!messageBox) return;
+
+                messageBox.style.display = "block";
+                messageBox.textContent = text;
+
+                if (type === "success") {
+                    messageBox.style.background = "rgba(22, 163, 74, 0.12)";
+                    messageBox.style.color = "#166534";
+                    messageBox.style.border = "1px solid rgba(22, 163, 74, 0.25)";
+                } else {
+                    messageBox.style.background = "rgba(220, 38, 38, 0.12)";
+                    messageBox.style.color = "#991b1b";
+                    messageBox.style.border = "1px solid rgba(220, 38, 38, 0.25)";
+                }
+            }
+
+            if (form) {
+                form.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+
+                    const lat = parseFloat(document.getElementById("latInput").value);
+                    const lng = parseFloat(document.getElementById("lngInput").value);
+                    const radius = parseFloat(document.getElementById("radiusInput").value);
+
+                    if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+                        showMessage("Please enter valid latitude, longitude, and radius values.", "error");
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch("/update-safe-zone", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                lat: lat,
+                                lng: lng,
+                                radius_km: radius
+                            })
+                        });
+
+                        const data = await res.json();
+
+                        if (!res.ok || !data.success) {
+                            showMessage(data.message || "Failed to update safe zone.", "error");
+                            return;
+                        }
+
+                        document.getElementById("currentLat").textContent = lat;
+                        document.getElementById("currentLng").textContent = lng;
+                        document.getElementById("currentRadius").textContent = `${radius} KM`;
+
+                        document.getElementById("currentLatTop").textContent = lat;
+                        document.getElementById("currentLngTop").textContent = lng;
+                        document.getElementById("currentRadiusTop").textContent = `${radius} KM`;
+
+                        showMessage("Safe zone updated successfully.", "success");
+                    } catch (err) {
+                        console.error("Update safe zone error:", err);
+                        showMessage("Server error while updating safe zone.", "error");
+                    }
+                });
+            }
+
+            updateGlobalStatus();
+            setInterval(updateGlobalStatus, 2000);
+        });
+    </script>
+</body>
+
+</html>
