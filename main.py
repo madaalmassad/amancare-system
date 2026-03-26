@@ -162,10 +162,9 @@ def root():
     return {"status": "AmanCare is running 🚀"}
 
 # LOGIN
-# @app.get("/login", response_class=HTMLResponse)
-# def login_page(request: Request):
-#     return templates.TemplateResponse("login.html", {"request": request, "error": None})
-
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login", response_class=HTMLResponse)
 def login_post(
